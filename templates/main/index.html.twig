@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div class="container" id="main-wrapper">
+    <div class="row pt-5">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <form action="/weatherapi" method="POST">
+                <div class="form-group">                    
+                    <input type="text" class="form-control" name="apikey" placeholder="API Key">
+                    <small class="form-text text-muted">For Example: 33b346bf1b330776887f58df741cc04b</small>
+                </div>
+                <div class="input-group">
+                    <input type="text"  class="form-control" name="city" placeholder="City">
+                    <div class="input-group-append">
+                        <button class="btn btn-success" type="submit"><i class="fas fa-check"></i></button>
+                    </div>
+				</div>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="container text-center pt-3" id='tabs-wrapper'>
+        <div id="before">
+            <h1 class="text-muted"><i class="fas fa-arrow-up"></i></h1>
+            <h1 class='text-muted'>PRIDEKITE NAUJA MIESTA</h1>
+        </div>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+        </ul>
+        <div class="tab-content" id="myTabContent">
+        </div>
+    </div>
+        
+</div>
+    
+{% endblock content %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function(){
+            //get form
+            let form = $("form")
+
+            //ajax call when form gets submited
+            form.submit(function(e){
+                e.preventDefault()
+
+                $.ajax({
+                    type: form.attr("method"),
+                    url: form.attr("action"),
+                    data:{
+                        'apikey': $(this).find("input[name='apikey']").val(),
+                        'city': $(this).find("input[name='city']").val(),
+                    },
+                    success: function(data){
+                        console.log(data)
+                        spawnCity(data)
+                        form.find("input[name='apikey']").val('')
+                        form.find("input[name='city']").val('')
+                        
+                    }
+                })
+            });// end of ajax call
+
+            //spawn new city
+            function spawnCity(data){
+                let container = $("#tabs-wrapper")
+                container.find("#before").fadeOut()
+                let tabhtml = "<li class='nav-item'><a class='nav-link' id='" + data.name.replace(/\s/g, '') + "-tab' data-toggle='tab' href='#" + data.name.replace(/\s/g, '') + "' role='tab' aria-controls='" + data.name.replace(/\s/g, '') + "' aria-selected='false'>" + data.name + "</a></li>"
+                let divhtml = "<div class='tab-pane fade' id='" + data.name.replace(/\s/g, '') + "' role='tabpanel' aria-labelledby='" + data.name.replace(/\s/g, '') + "-tab'><h1>" + data.name + "</h1><img src='http://openweathermap.org/img/w/" + data.weather[0].icon + ".png'><h3>" + data.main.temp + "&#176;C</h3></div>"
+                $(tabhtml).hide().appendTo(container.find("ul")).fadeIn(1000)
+                $(divhtml).appendTo(container.find(".tab-content"))
+
+            }
+        });
+    </script>
+{% endblock %}
